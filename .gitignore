@@ -31,6 +31,9 @@ agent/data/inbox/
 agent/data/queue/
 agent/data/processed/
 
+# IDE / tooling
+.claude/
+
 # Misc
 .DS_Store
 *.log
