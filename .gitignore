@@ -38,3 +38,4 @@ agent/data/processed/
 .DS_Store
 *.log
 *.sqlite3
+.claude/
