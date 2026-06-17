@@ -1,12 +1,11 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
-
 from app.core.dependencies import get_current_user, get_user_repository
 from app.interfaces.user_repository import IUserRepository
 from app.models.category import Category
 from app.schemas.news import CategoryOut
 from app.schemas.user import UserOut
+from fastapi import APIRouter, Depends
 
 router = APIRouter(tags=["preferences"])
 

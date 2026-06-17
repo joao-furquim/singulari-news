@@ -6,8 +6,23 @@ import anthropic
 logger = logging.getLogger(__name__)
 
 CATEGORY_KEYWORDS: dict[str, list[str]] = {
-    "ia": ["inteligência artificial", "machine learning", "deep learning", "llm", "gpt", "neural"],
-    "tecnologia": ["software", "hardware", "programação", "developer", "código", "api", "cloud"],
+    "ia": [
+        "inteligência artificial",
+        "machine learning",
+        "deep learning",
+        "llm",
+        "gpt",
+        "neural",
+    ],
+    "tecnologia": [
+        "software",
+        "hardware",
+        "programação",
+        "developer",
+        "código",
+        "api",
+        "cloud",
+    ],
     "negocios": ["empresa", "startup", "mercado", "investimento", "receita", "negócio"],
     "inovacao": ["inovação", "disruption", "futuro", "tendência", "nova tecnologia"],
     "ciencia": ["pesquisa", "estudo", "descoberta", "cientistas", "experimento"],
@@ -19,7 +34,9 @@ AI_MODEL = os.getenv("AI_MODEL", "claude-haiku-4-5-20251001")
 
 
 def classify_article(article_data: dict) -> dict:
-    raw_content = f"{article_data.get('title', '')} {article_data.get('content', '')}".lower()
+    raw_content = (
+        f"{article_data.get('title', '')} {article_data.get('content', '')}".lower()
+    )
 
     for category_slug, keywords in CATEGORY_KEYWORDS.items():
         if any(keyword in raw_content for keyword in keywords):
@@ -35,7 +52,8 @@ def classify_article(article_data: dict) -> dict:
 def _classify_via_ai(article_data: dict) -> str:
     available_categories = list(CATEGORY_KEYWORDS.keys())
     prompt = (
-        f"Classify the article below into one of these categories: {', '.join(available_categories)}.\n"
+        f"Classify the article below into one of these categories: "
+        f"{', '.join(available_categories)}.\n"
         f"Reply with only the category slug, no explanation.\n\n"
         f"Title: {article_data.get('title', '')}\n"
         f"Content: {article_data.get('content', '')[:500]}"

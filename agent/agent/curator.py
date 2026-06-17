@@ -4,8 +4,6 @@ import os
 import shutil
 from pathlib import Path
 
-import redis
-
 from agent.classifier import classify_article
 from agent.publisher import publish_to_queue
 

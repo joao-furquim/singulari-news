@@ -1,23 +1,22 @@
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError
-
 from app.core.security import decode_token
+from app.interfaces.email_service import IEmailService
 from app.interfaces.news_repository import INewsRepository
 from app.interfaces.news_service import INewsService
+from app.interfaces.storage_service import IStorageService
 from app.interfaces.user_repository import IUserRepository
 from app.interfaces.user_service import IUserService
-from app.interfaces.storage_service import IStorageService
-from app.interfaces.email_service import IEmailService
 from app.repositories.news_repository import NewsRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.user import UserOut
-from app.services.news_service import NewsService
 from app.services.auth_service import AuthService
-from app.services.storage_service import StorageService
 from app.services.email_service import EmailService
+from app.services.news_service import NewsService
+from app.services.storage_service import StorageService
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError
 
 bearer_scheme = HTTPBearer()
 
@@ -84,4 +83,5 @@ def require_role(*roles: str):
                 detail=f"Access denied. Required role: {', '.join(roles)}",
             )
         return current_user
+
     return check_role

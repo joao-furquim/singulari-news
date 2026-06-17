@@ -2,12 +2,11 @@ from datetime import datetime, timedelta, timezone
 from typing import Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
-
 from app.core.dependencies import get_current_user, get_news_service, require_role
 from app.interfaces.news_service import INewsService
 from app.schemas.news import NewsFilter, NewsOut, NewsUpdateIn, PaginatedResponse
 from app.schemas.user import UserOut
+from fastapi import APIRouter, Depends, Query, status
 
 router = APIRouter(tags=["news"])
 

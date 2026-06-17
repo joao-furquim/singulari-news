@@ -6,7 +6,9 @@ from app.schemas.news import NewsFilter
 
 
 class NewsRepository(INewsRepository):
-    async def find_all(self, news_filter: NewsFilter, favorited_ids: set[UUID]) -> tuple[list[News], int]:
+    async def find_all(
+        self, news_filter: NewsFilter, favorited_ids: set[UUID]
+    ) -> tuple[list[News], int]:
         query = News.all().prefetch_related("category")
 
         if news_filter.date_from:
@@ -18,7 +20,11 @@ class NewsRepository(INewsRepository):
 
         total = await query.count()
         offset = (news_filter.page - 1) * news_filter.limit
-        news_items = await query.order_by("-published_at").offset(offset).limit(news_filter.limit)
+        news_items = (
+            await query.order_by("-published_at")
+            .offset(offset)
+            .limit(news_filter.limit)
+        )
 
         for news_item in news_items:
             news_item.is_favorited = news_item.id in favorited_ids

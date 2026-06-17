@@ -7,7 +7,9 @@ from app.schemas.news import NewsFilter
 
 class INewsRepository(ABC):
     @abstractmethod
-    async def find_all(self, news_filter: NewsFilter, favorited_ids: set[UUID]) -> tuple[list[News], int]:
+    async def find_all(
+        self, news_filter: NewsFilter, favorited_ids: set[UUID]
+    ) -> tuple[list[News], int]:
         pass
 
     @abstractmethod

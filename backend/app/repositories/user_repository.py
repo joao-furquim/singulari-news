@@ -25,7 +25,9 @@ class UserRepository(IUserRepository):
         await User.filter(id=user_id).delete()
 
     async def get_preference_ids(self, user_id: UUID) -> list[UUID]:
-        preferences = await UserPreference.filter(user_id=user_id).values_list("category_id", flat=True)
+        preferences = await UserPreference.filter(user_id=user_id).values_list(
+            "category_id", flat=True
+        )
         return list(preferences)
 
     async def set_preferences(self, user_id: UUID, category_ids: list[UUID]) -> None:
@@ -37,7 +39,9 @@ class UserRepository(IUserRepository):
         await UserPreference.bulk_create(preference_objects)
 
     async def get_favorite_news_ids(self, user_id: UUID) -> set[UUID]:
-        favorite_ids = await UserFavorite.filter(user_id=user_id).values_list("news_id", flat=True)
+        favorite_ids = await UserFavorite.filter(user_id=user_id).values_list(
+            "news_id", flat=True
+        )
         return set(favorite_ids)
 
     async def save_password_reset(self, reset_data: dict) -> PasswordReset:
@@ -45,6 +49,7 @@ class UserRepository(IUserRepository):
 
     async def find_valid_reset_token(self, token: str):
         from datetime import datetime, timezone
+
         return await PasswordReset.get_or_none(
             token=token,
             is_used=False,

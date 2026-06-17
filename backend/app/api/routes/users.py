@@ -1,15 +1,15 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, UploadFile, status
-
 from app.core.dependencies import get_auth_service, get_current_user, require_role
 from app.interfaces.user_service import IUserService
 from app.schemas.user import RoleUpdateIn, UserInviteIn, UserOut, UserUpdateIn
+from fastapi import APIRouter, Depends, File, UploadFile, status
 
 router = APIRouter(tags=["users"])
 
 
 # ── Authenticated user profile ────────────────────────────────────────────────
+
 
 @router.get("/users/me", response_model=UserOut)
 async def get_profile(current_user: UserOut = Depends(get_current_user)):
@@ -32,12 +32,17 @@ async def upload_avatar(
     auth_service: IUserService = Depends(get_auth_service),
 ):
     file_bytes = await file.read()
-    return await auth_service.update_avatar(current_user.id, file_bytes, file.content_type)
+    return await auth_service.update_avatar(
+        current_user.id, file_bytes, file.content_type
+    )
 
 
 # ── Invite (admin only) ───────────────────────────────────────────────────────
 
-@router.post("/users/invite", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+
+@router.post(
+    "/users/invite", response_model=UserOut, status_code=status.HTTP_201_CREATED
+)
 async def invite_user(
     user_data: UserInviteIn,
     _: UserOut = Depends(require_role("admin")),
@@ -47,6 +52,7 @@ async def invite_user(
 
 
 # ── Admin: user management ────────────────────────────────────────────────────
+
 
 @router.get("/users", response_model=list[UserOut])
 async def list_users(

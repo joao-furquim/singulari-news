@@ -1,9 +1,8 @@
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
-from jose import JWTError, jwt
-
 from app.core.config import settings
+from jose import jwt
 
 
 def hash_password(plain_password: str) -> str:
@@ -19,7 +18,9 @@ def create_access_token(subject: str) -> str:
         minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
     )
     payload = {"sub": subject, "exp": expires_at, "type": "access"}
-    return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    return jwt.encode(
+        payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+    )
 
 
 def create_reset_token(subject: str) -> str:
@@ -27,8 +28,12 @@ def create_reset_token(subject: str) -> str:
         minutes=settings.JWT_RESET_TOKEN_EXPIRE_MINUTES
     )
     payload = {"sub": subject, "exp": expires_at, "type": "reset"}
-    return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    return jwt.encode(
+        payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+    )
 
 
 def decode_token(token: str) -> dict:
-    return jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+    return jwt.decode(
+        token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+    )

@@ -1,11 +1,10 @@
 from contextlib import asynccontextmanager
 
+from app.api.routes import auth, news, preferences, users
+from app.core.config import TORTOISE_ORM
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from tortoise.contrib.fastapi import RegisterTortoise
-
-from app.api.routes import auth, news, preferences, users
-from app.core.config import TORTOISE_ORM
 
 
 @asynccontextmanager

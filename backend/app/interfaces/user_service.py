@@ -32,7 +32,9 @@ class IUserService(ABC):
         pass
 
     @abstractmethod
-    async def update_avatar(self, user_id: UUID, file_bytes: bytes, content_type: str) -> UserOut:
+    async def update_avatar(
+        self, user_id: UUID, file_bytes: bytes, content_type: str
+    ) -> UserOut:
         pass
 
     @abstractmethod

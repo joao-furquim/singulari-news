@@ -28,7 +28,9 @@ class User(Model):
 class UserPreference(Model):
     id = fields.UUIDField(pk=True)
     user = fields.ForeignKeyField("models.User", related_name="user_preferences")
-    category = fields.ForeignKeyField("models.Category", related_name="user_preferences")
+    category = fields.ForeignKeyField(
+        "models.Category", related_name="user_preferences"
+    )
     created_at = fields.DatetimeField(auto_now_add=True)
 
     class Meta:

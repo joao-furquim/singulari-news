@@ -6,7 +6,9 @@ from app.schemas.news import NewsFilter, NewsOut, NewsUpdateIn, PaginatedRespons
 
 class INewsService(ABC):
     @abstractmethod
-    async def list_news(self, news_filter: NewsFilter, current_user_id: UUID | None) -> PaginatedResponse:
+    async def list_news(
+        self, news_filter: NewsFilter, current_user_id: UUID | None
+    ) -> PaginatedResponse:
         pass
 
     @abstractmethod
