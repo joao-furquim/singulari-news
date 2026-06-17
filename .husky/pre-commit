@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+
+echo "▶ black --check backend/ agent/"
+black --check backend/ agent/
+
+echo "▶ flake8 backend/ agent/"
+flake8 backend/ agent/
+
+echo "▶ eslint consumer/src/"
+cd consumer && npx eslint src/ && cd ..
+
+echo "▶ prettier --check consumer/src/"
+cd consumer && npx prettier --check src/ && cd ..
