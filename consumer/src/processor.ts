@@ -22,6 +22,7 @@ export function createNewsProcessor(dbClient: DbClient) {
   return async (job: Job<ArticleData>) => {
     const articleData = job.data;
     console.log(`[processor] Processing: ${articleData.title}`);
+    console.log(`[processor] Category slug from agent: ${articleData.category_slug}`);
 
     const { summary, ai_generated } = await generateSummaryWithFallback(
       articleData.title,
@@ -32,6 +33,31 @@ export function createNewsProcessor(dbClient: DbClient) {
 
     return { newsId, summary, ai_generated };
   };
+}
+
+/**
+ * Fetches an existing category by slug, or creates it if it doesn't exist.
+ * Guarantees the pipeline never drops an article due to a missing category.
+ */
+async function getOrCreateCategory(dbClient: DbClient, slug: string): Promise<string> {
+  const existing = await dbClient.query<{ id: string }>(
+    'SELECT id FROM categories WHERE slug = $1',
+    [slug],
+  );
+  if (existing.rows.length > 0) {
+    return existing.rows[0].id;
+  }
+
+  // Capitalise slug to create a readable display name (e.g. "health" → "Health")
+  const name = slug.charAt(0).toUpperCase() + slug.slice(1);
+  const result = await dbClient.query<{ id: string }>(
+    `INSERT INTO categories (id, name, slug, created_at)
+     VALUES (gen_random_uuid(), $1, $2, NOW())
+     RETURNING id`,
+    [name, slug],
+  );
+  console.log(`[processor] New category created: ${slug} (name: "${name}")`);
+  return result.rows[0].id;
 }
 
 async function generateSummaryWithFallback(
@@ -64,15 +90,8 @@ async function saveNews(
   summary: string,
   ai_generated: boolean,
 ): Promise<string> {
-  const categoryResult = await dbClient.query<{ id: string }>(
-    'SELECT id FROM categories WHERE slug = $1',
-    [articleData.category_slug],
-  );
-
-  const categoryId = categoryResult.rows[0]?.id;
-  if (!categoryId) {
-    throw new Error(`Category not found: ${articleData.category_slug}`);
-  }
+  // get_or_create the category — never throw on unknown slugs
+  const categoryId = await getOrCreateCategory(dbClient, articleData.category_slug);
 
   const newsResult = await dbClient.query<{ id: string }>(
     `INSERT INTO news (category_id, title, source, summary, content, published_at, ai_generated)
