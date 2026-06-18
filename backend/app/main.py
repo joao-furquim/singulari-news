@@ -19,12 +19,14 @@ async def _seed_categories():
     from app.models.category import Category
 
     seed_categories = [
-        {"name": "Tecnologia", "slug": "tecnologia", "icon": "💻"},
-        {"name": "IA", "slug": "ia", "icon": "🤖"},
-        {"name": "Negócios", "slug": "negocios", "icon": "💼"},
-        {"name": "Inovação", "slug": "inovacao", "icon": "🚀"},
-        {"name": "Ciência", "slug": "ciencia", "icon": "🔬"},
-        {"name": "Política", "slug": "politica", "icon": "🏛️"},
+        {"name": "Technology", "slug": "technology", "icon": "💻"},
+        {"name": "AI", "slug": "ai", "icon": "🤖"},
+        {"name": "Business", "slug": "business", "icon": "💼"},
+        {"name": "Science", "slug": "science", "icon": "🔬"},
+        {"name": "Health", "slug": "health", "icon": "🏥"},
+        {"name": "Politics", "slug": "politics", "icon": "🏛️"},
+        {"name": "Sports", "slug": "sports", "icon": "🏆"},
+        {"name": "General", "slug": "general", "icon": "📰"},
     ]
     for category_data in seed_categories:
         await Category.get_or_create(slug=category_data["slug"], defaults=category_data)
@@ -35,11 +37,21 @@ async def _seed_admin():
     from app.models.user import User, UserRole
 
     await User.get_or_create(
+        email="root@singulari.com",
+        defaults={
+            "name": "Root Singulari",
+            "password_hash": hash_password("Root@123"),
+            "role": UserRole.root,
+            "must_change_password": False,
+        },
+    )
+    await User.get_or_create(
         email="admin@singulari.com",
         defaults={
             "name": "Admin Singulari",
             "password_hash": hash_password("Admin@123"),
             "role": UserRole.admin,
+            "must_change_password": False,
         },
     )
 
@@ -48,7 +60,10 @@ app = FastAPI(title="Singulari News API", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

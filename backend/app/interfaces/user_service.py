@@ -38,7 +38,9 @@ class IUserService(ABC):
         pass
 
     @abstractmethod
-    async def list_users(self) -> list[UserOut]:
+    async def list_users(
+        self, page: int = 1, limit: int = 10
+    ) -> tuple[list[UserOut], int]:
         pass
 
     @abstractmethod
@@ -47,4 +49,8 @@ class IUserService(ABC):
 
     @abstractmethod
     async def update_user_role(self, user_id: UUID, role: UserRole) -> UserOut:
+        pass
+
+    @abstractmethod
+    async def change_password(self, user_id: UUID, new_password: str) -> None:
         pass

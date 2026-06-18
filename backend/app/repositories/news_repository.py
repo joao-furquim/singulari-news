@@ -16,7 +16,7 @@ class NewsRepository(INewsRepository):
         if news_filter.date_to:
             query = query.filter(published_at__lte=news_filter.date_to)
         if news_filter.categories:
-            query = query.filter(category_id__in=news_filter.categories)
+            query = query.filter(category__slug__in=news_filter.categories)
 
         total = await query.count()
         offset = (news_filter.page - 1) * news_filter.limit

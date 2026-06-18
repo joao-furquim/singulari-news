@@ -46,6 +46,11 @@ class AuthService(IUserService):
         return UserOut.model_validate(new_user)
 
     async def invite(self, user_data: UserInviteIn) -> UserOut:
+        if user_data.role == UserRole.root:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Cannot create users with root role",
+            )
         existing_user = await self._user_repository.find_by_email(user_data.email)
         if existing_user is not None:
             raise HTTPException(
@@ -58,6 +63,7 @@ class AuthService(IUserService):
                 "email": user_data.email,
                 "password_hash": hash_password(user_data.password),
                 "role": user_data.role,
+                "must_change_password": True,
             }
         )
         return UserOut.model_validate(new_user)
@@ -136,9 +142,11 @@ class AuthService(IUserService):
         )
         return UserOut.model_validate(updated_user)
 
-    async def list_users(self) -> list[UserOut]:
-        users = await self._user_repository.find_all()
-        return [UserOut.model_validate(u) for u in users]
+    async def list_users(
+        self, page: int = 1, limit: int = 10
+    ) -> tuple[list[UserOut], int]:
+        users, total = await self._user_repository.find_all_paginated(page, limit)
+        return [UserOut.model_validate(u) for u in users], total
 
     async def delete_user(self, user_id: UUID) -> None:
         user = await self._user_repository.find_by_id(user_id)
@@ -146,13 +154,37 @@ class AuthService(IUserService):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
             )
+        if user.role == UserRole.root:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Root user cannot be deleted",
+            )
         await self._user_repository.delete(user_id)
 
+    async def change_password(self, user_id: UUID, new_password: str) -> None:
+        await self._user_repository.update(
+            user_id,
+            {
+                "password_hash": hash_password(new_password),
+                "must_change_password": False,
+            },
+        )
+
     async def update_user_role(self, user_id: UUID, role: UserRole) -> UserOut:
+        if role == UserRole.root:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Cannot assign root role",
+            )
         user = await self._user_repository.find_by_id(user_id)
         if user is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            )
+        if user.role == UserRole.root:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Root user role cannot be changed",
             )
         updated_user = await self._user_repository.update(user_id, {"role": role})
         return UserOut.model_validate(updated_user)

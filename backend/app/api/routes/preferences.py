@@ -6,8 +6,13 @@ from app.models.category import Category
 from app.schemas.news import CategoryOut
 from app.schemas.user import UserOut
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel
 
 router = APIRouter(tags=["preferences"])
+
+
+class PreferencesIn(BaseModel):
+    category_ids: list[UUID]
 
 
 @router.get("/preferences", response_model=list[CategoryOut])
@@ -26,9 +31,10 @@ async def get_my_preferences(
 
 @router.put("/users/me/preferences", response_model=list[UUID])
 async def update_my_preferences(
-    category_ids: list[UUID],
+    body: PreferencesIn,
     current_user: UserOut = Depends(get_current_user),
     user_repository: IUserRepository = Depends(get_user_repository),
 ):
-    await user_repository.set_preferences(current_user.id, category_ids)
-    return category_ids
+    print(f"Preferences payload: {body.category_ids}")
+    await user_repository.set_preferences(current_user.id, body.category_ids)
+    return body.category_ids

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from typing import Literal
-from uuid import UUID
+from uuid import UUID  # still needed for news_id params
 
 from app.core.dependencies import get_current_user, get_news_service, require_role
 from app.interfaces.news_service import INewsService
@@ -27,7 +27,7 @@ async def list_news(
     period: Literal["day", "week", "month"] | None = Query(default=None),
     date_from: datetime | None = Query(default=None),
     date_to: datetime | None = Query(default=None),
-    categories: list[UUID] | None = Query(default=None),
+    categories: str | None = Query(default=None),
     page: int = Query(default=1, ge=1),
     limit: int = Query(default=20, ge=1, le=100),
     news_service: INewsService = Depends(get_news_service),
@@ -35,10 +35,15 @@ async def list_news(
     if period is not None:
         date_from, date_to = _resolve_period(period)
 
+    category_slugs: list[str] | None = None
+    if categories:
+        category_slugs = [c.strip() for c in categories.split(",") if c.strip()] or None
+    print(f"Categories filter (slugs): {category_slugs}")
+
     news_filter = NewsFilter(
         date_from=date_from,
         date_to=date_to,
-        categories=categories,
+        categories=category_slugs,
         page=page,
         limit=limit,
     )

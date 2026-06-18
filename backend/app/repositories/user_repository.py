@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from app.interfaces.user_repository import IUserRepository
-from app.models.user import PasswordReset, User, UserFavorite, UserPreference
+from app.models.user import PasswordReset, User, UserFavorite, UserPreference, UserRole
 
 
 class UserRepository(IUserRepository):
@@ -12,7 +12,14 @@ class UserRepository(IUserRepository):
         return await User.get_or_none(email=email)
 
     async def find_all(self) -> list[User]:
-        return await User.all()
+        return await User.filter(role__not=UserRole.root)
+
+    async def find_all_paginated(self, page: int, limit: int) -> tuple[list[User], int]:
+        query = User.filter(role__not=UserRole.root).order_by("created_at")
+        total = await query.count()
+        offset = (page - 1) * limit
+        users = await query.offset(offset).limit(limit)
+        return list(users), total
 
     async def create(self, user_data: dict) -> User:
         return await User.create(**user_data)

@@ -77,6 +77,8 @@ async def get_current_user(
 
 def require_role(*roles: str):
     async def check_role(current_user: UserOut = Depends(get_current_user)) -> UserOut:
+        if current_user.role == "root":  # root inherits all permissions
+            return current_user
         if current_user.role not in roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

@@ -18,6 +18,10 @@ class IUserRepository(ABC):
         pass
 
     @abstractmethod
+    async def find_all_paginated(self, page: int, limit: int) -> tuple[list[User], int]:
+        pass
+
+    @abstractmethod
     async def create(self, user_data: dict) -> User:
         pass
 
