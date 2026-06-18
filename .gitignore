@@ -39,3 +39,6 @@ agent/data/processed/
 *.log
 *.sqlite3
 .claude/
+
+# TypeScript build cache
+*.tsbuildinfo
