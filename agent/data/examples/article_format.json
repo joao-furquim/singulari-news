@@ -1,0 +1,37 @@
+{
+  "_doc": {
+    "description": "This file documents the two JSON formats accepted by the Singulari News agent.",
+    "placement": "Drop .json files into agent/data/queue/ and the agent will pick them up automatically.",
+    "categories": ["technology", "ai", "business", "science", "health", "politics", "sports", "general"],
+    "notes": [
+      "published_at must be an ISO 8601 datetime string (UTC recommended).",
+      "content should have at least 3 sentences so the AI summarizer has enough material.",
+      "category_slug is optional — the agent classifies automatically via keyword scoring.",
+      "Remove _doc and _comment keys before dropping real articles into the queue."
+    ]
+  },
+
+  "_comment_format_1": "FORMAT 1 — single article (object)",
+  "single_article_example": {
+    "title": "Example Article Title Goes Here",
+    "source": "Source Publication Name",
+    "content": "This is the first sentence of the article body providing the main fact. The second sentence expands on the context and gives background information relevant to the story. A third sentence adds a supporting detail, quote, or data point that enriches the summary the AI will generate.",
+    "published_at": "2026-06-18T10:00:00Z"
+  },
+
+  "_comment_format_2": "FORMAT 2 — batch of articles (array). All articles in the array are published to the queue before the file is moved to processed/.",
+  "batch_articles_example": [
+    {
+      "title": "First Article in the Batch",
+      "source": "Source A",
+      "content": "Opening sentence of the first article. Second sentence adds detail. Third sentence wraps up the key point.",
+      "published_at": "2026-06-18T10:00:00Z"
+    },
+    {
+      "title": "Second Article in the Batch",
+      "source": "Source B",
+      "content": "Opening sentence of the second article. This sentence provides context and background. The final sentence includes a relevant statistic or quote.",
+      "published_at": "2026-06-18T11:00:00Z"
+    }
+  ]
+}

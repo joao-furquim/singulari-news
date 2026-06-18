@@ -102,6 +102,17 @@ services:
     profiles:
       - demo
 
+  seed-articles:
+    build:
+      context: ./agent
+      dockerfile: Dockerfile
+    command: python data/seed_articles.py
+    restart: "no"
+    volumes:
+      - ./agent/data:/app/data
+    profiles:
+      - demo
+
 volumes:
   postgres_data:
   redis_data:
