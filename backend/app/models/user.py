@@ -8,6 +8,7 @@ class UserRole(str, Enum):
     user = "user"
     reviewer = "reviewer"
     admin = "admin"
+    root = "root"
 
 
 class User(Model):
@@ -18,6 +19,7 @@ class User(Model):
     avatar_url = fields.CharField(max_length=500, null=True)
     locale = fields.CharField(max_length=10, default="pt-BR")
     role = fields.CharEnumField(UserRole, default=UserRole.user, max_length=20)
+    must_change_password = fields.BooleanField(default=False)
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
 

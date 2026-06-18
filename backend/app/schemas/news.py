@@ -42,7 +42,7 @@ class NewsUpdateIn(BaseModel):
 class NewsFilter(BaseModel):
     date_from: datetime | None = None
     date_to: datetime | None = None
-    categories: list[UUID] | None = None
+    categories: list[str] | None = None  # category slugs
     page: int = 1
     limit: int = 20
 
