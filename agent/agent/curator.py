@@ -51,9 +51,17 @@ def process_inbox() -> None:
         try:
             raw_content = article_file.read_text(encoding="utf-8")
             article_data = json.loads(raw_content)
-            curated_article = classify_article(article_data)
-            publish_to_queue(curated_article)
+
+            # Support both single article (dict) and batch (list)
+            raw_articles = (
+                article_data if isinstance(article_data, list) else [article_data]
+            )
+
+            for raw_article in raw_articles:
+                curated_article = classify_article(raw_article)
+                publish_to_queue(curated_article)
+
             shutil.move(str(article_file), str(processed_path / article_file.name))
-            logger.info(f"Article processed: {article_file.name}")
+            logger.info(f"Processed {article_file.name} ({len(raw_articles)} articles)")
         except Exception as error:
             logger.error(f"Failed to process {article_file.name}: {error}")
