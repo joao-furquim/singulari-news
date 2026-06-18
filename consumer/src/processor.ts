@@ -3,7 +3,7 @@ import { Job } from 'bullmq';
 import { DbClient } from './database';
 
 const genAI = new GoogleGenerativeAI(process.env.AI_API_KEY ?? '');
-const AI_MODEL = process.env.AI_MODEL ?? 'gemini-2.5-pro';
+const AI_MODEL = process.env.AI_MODEL ?? 'gemini-2.0-flash-lite';
 
 interface ArticleData {
   title: string;
