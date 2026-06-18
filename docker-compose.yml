@@ -77,19 +77,30 @@ services:
       - /app/node_modules
       - /app/dist
 
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   restart: unless-stopped
-  #   env_file: .env
-  #   ports:
-  #     - "5173:5173"
-  #   depends_on:
-  #     - backend
-  #   volumes:
-  #     - ./frontend:/app
-  #     - /app/node_modules
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  seed-demo:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: python -m app.core.seed_demo
+    env_file: .env
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - demo
 
 volumes:
   postgres_data:

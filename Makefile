@@ -1,4 +1,4 @@
-.PHONY: lint format test up down
+.PHONY: lint format test deps up down
 
 lint:
 	cd backend && poetry run black --check . ../agent/
@@ -14,6 +14,9 @@ format:
 test:
 	cd backend && poetry run pytest tests/ -v
 	cd consumer && npx tsc --noEmit
+
+deps:
+	cd backend && poetry export -f requirements.txt --output requirements.txt --without-hashes --only main
 
 up:
 	docker-compose up --build

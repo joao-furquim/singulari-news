@@ -3,20 +3,14 @@ FROM python:3.11-slim
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc libpq-dev curl \
+    gcc libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-ENV POETRY_HOME=/opt/poetry \
-    POETRY_VIRTUALENVS_IN_PROJECT=1 \
-    POETRY_NO_INTERACTION=1
-
-RUN curl -sSL https://install.python-poetry.org | python3 -
-
-ENV PATH="/opt/poetry/bin:$PATH"
-
-COPY pyproject.toml poetry.lock* ./
-RUN poetry install --only main --no-root
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
 EXPOSE 8000
+
+CMD ["sh", "-c", "aerich upgrade && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
