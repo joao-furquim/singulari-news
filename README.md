@@ -161,12 +161,54 @@ After running `seed-articles`, the agent will process the queue on its next sche
 
 ---
 
+## Adding Articles
+
+Drop a JSON file into `agent/data/queue/`. The agent picks it up within 5 minutes, classifies it into one of 8 categories by keyword scoring, and publishes each article to the BullMQ processing queue.
+
+**Single article format:**
+
+```json
+{
+  "title": "Article title",
+  "source": "Source name",
+  "content": "Full article content with at least 3 sentences for a meaningful AI summary.",
+  "published_at": "2026-06-18T10:00:00Z"
+}
+```
+
+**Batch format (multiple articles in one file):**
+
+```json
+[
+  { "title": "...", "source": "...", "content": "...", "published_at": "..." },
+  { "title": "...", "source": "...", "content": "...", "published_at": "..." }
+]
+```
+
+See `agent/data/examples/article_format.json` for a documented example.  
+The 8 supported categories are: **Technology, AI, Business, Science, Health, Politics, Sports** and **General**.
+
+---
+
 ## Default Credentials
 
 | Role     | Email                  | Password    | Notes                                |
 |----------|------------------------|-------------|--------------------------------------|
 | Root     | root@singulari.com     | Root@123    | Cannot be deleted or listed via API  |
 | Admin    | admin@singulari.com    | Admin@123   | Full user and content management     |
+
+---
+
+## User Roles
+
+| Role       | Capabilities                                                          |
+|------------|-----------------------------------------------------------------------|
+| `root`     | System bootstrap account — cannot be listed, edited or deleted via API |
+| `admin`    | Full access: manage users, invite staff, edit and delete news          |
+| `reviewer` | Can edit and delete news articles                                      |
+| `user`     | Read news, manage favorites and category preferences                   |
+
+Users with `reviewer` or `admin` role are created exclusively via `POST /users/invite` (admin only). Regular users self-register via `POST /users`. New staff accounts flagged with `must_change_password: true` are required to set a new password on first login before accessing any content.
 
 ---
 
