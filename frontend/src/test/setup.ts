@@ -17,7 +17,7 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // MUI Tabs uses ResizeObserver — must be a real class (vi.fn() is not new-able)
-global.ResizeObserver = class {
+globalThis.ResizeObserver = class {
   observe = vi.fn();
   unobserve = vi.fn();
   disconnect = vi.fn();

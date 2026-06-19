@@ -1,0 +1,12 @@
+node_modules
+dist
+coverage
+
+# Test files — not needed in the production build
+src/**/__tests__
+src/test
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+vitest.config.ts
