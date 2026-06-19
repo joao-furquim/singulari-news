@@ -184,6 +184,7 @@ export function NewsItem({
           {/* Favorite */}
           <IconButton
             size="small"
+            aria-label={isFavorited ? 'unfavorite article' : 'favorite article'}
             onClick={(e) => {
               e.stopPropagation();
               onToggleFavorite(news.id);
