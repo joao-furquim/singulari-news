@@ -15,6 +15,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - singulari-network
 
   redis:
     image: redis:7-alpine
@@ -29,6 +31,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - singulari-network
 
   backend:
     build:
@@ -47,6 +51,8 @@ services:
       - ./backend:/app
     command: >
       sh -c "aerich upgrade && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    networks:
+      - singulari-network
 
   agent:
     build:
@@ -60,6 +66,8 @@ services:
     volumes:
       - ./agent:/app
       - ./agent/data:/app/data
+    networks:
+      - singulari-network
 
   consumer:
     build:
@@ -76,6 +84,8 @@ services:
       - ./consumer:/app
       - /app/node_modules
       - /app/dist
+    networks:
+      - singulari-network
 
   frontend:
     build:
@@ -88,6 +98,8 @@ services:
       - "80:80"
     depends_on:
       - backend
+    networks:
+      - singulari-network
 
   seed-demo:
     build:
@@ -101,6 +113,8 @@ services:
         condition: service_healthy
     profiles:
       - demo
+    networks:
+      - singulari-network
 
   seed-articles:
     build:
@@ -112,7 +126,13 @@ services:
       - ./agent/data:/app/data
     profiles:
       - demo
+    networks:
+      - singulari-network
 
 volumes:
   postgres_data:
   redis_data:
+
+networks:
+  singulari-network:
+    name: singulari-news-network
