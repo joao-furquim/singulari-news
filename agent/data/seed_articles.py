@@ -11,7 +11,6 @@ to BullMQ and moves the file to processed/.
 """
 
 import json
-import os
 from pathlib import Path
 
 QUEUE_DIR = Path(__file__).parent / "queue"

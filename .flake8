@@ -11,4 +11,4 @@ exclude =
     build
 per-file-ignores =
     __init__.py:F401
-    agent/data/seed_articles.py:E501,F401
+    agent/data/seed_articles.py:E501
