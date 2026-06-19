@@ -1,11 +1,3 @@
-from abc import ABC, abstractmethod
-
-
-class IStorageService(ABC):
-    @abstractmethod
-    async def upload(self, key: str, file_bytes: bytes, content_type: str) -> str:
-        pass
-
-    @abstractmethod
-    async def delete(self, key: str) -> None:
-        pass
+# IStorageService was removed when avatar upload was replaced by dynamic
+# initials (see UserAvatar component). File kept as empty stub to avoid
+# breaking git history references.
