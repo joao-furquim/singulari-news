@@ -21,12 +21,12 @@ async def list_categories():
     return [CategoryOut.model_validate(c) for c in categories]
 
 
-@router.get("/users/me/preferences", response_model=list[UUID])
+@router.get("/users/me/preferences", response_model=list[str])
 async def get_my_preferences(
     current_user: UserOut = Depends(get_current_user),
     user_repository: IUserRepository = Depends(get_user_repository),
 ):
-    return await user_repository.get_preference_ids(current_user.id)
+    return await user_repository.get_preference_slugs(current_user.id)
 
 
 @router.put("/users/me/preferences", response_model=list[UUID])

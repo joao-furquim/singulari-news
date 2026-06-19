@@ -65,18 +65,20 @@ export function PreferencesModal({ open, mode, onClose }: PreferencesModalProps)
     cat.name.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const toggle = (id: string) =>
+  const toggle = (slug: string) =>
     setSelected((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+      prev.includes(slug) ? prev.filter((x) => x !== slug) : [...prev, slug],
     );
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      const payload = { category_ids: selected };
-      console.log('[preferences] PUT /users/me/preferences', payload);
-      await client.put('/users/me/preferences', payload);
-      updatePreferences(selected);
+      // PUT expects UUIDs — convert slugs back to ids for the wire format
+      const categoryIds = selected
+        .map((slug) => categories.find((c) => c.slug === slug)?.id)
+        .filter(Boolean);
+      await client.put('/users/me/preferences', { category_ids: categoryIds });
+      updatePreferences(selected); // store slugs in AuthContext → feeds into filters
       onClose();
     } finally {
       setSaving(false);
@@ -114,15 +116,15 @@ export function PreferencesModal({ open, mode, onClose }: PreferencesModalProps)
 
         {selected.length > 0 && (
           <Stack direction="row" sx={{ mb: 1.5, flexWrap: 'wrap', gap: 0.5 }}>
-            {selected.map((id) => {
-              const cat = categories.find((c) => c.id === id);
+            {selected.map((slug) => {
+              const cat = categories.find((c) => c.slug === slug);
               return cat ? (
                 <Chip
-                  key={id}
+                  key={slug}
                   label={cat.name}
                   size="small"
                   color="primary"
-                  onDelete={() => toggle(id)}
+                  onDelete={() => toggle(slug)}
                 />
               ) : null;
             })}
@@ -137,9 +139,9 @@ export function PreferencesModal({ open, mode, onClose }: PreferencesModalProps)
           <List dense disablePadding sx={{ maxHeight: 300, overflow: 'auto' }}>
             {filtered.map((cat) => (
               <ListItem key={cat.id} disablePadding>
-                <ListItemButton onClick={() => toggle(cat.id)} sx={{ borderRadius: 1 }}>
+                <ListItemButton onClick={() => toggle(cat.slug)} sx={{ borderRadius: 1 }}>
                   <Checkbox
-                    checked={selected.includes(cat.id)}
+                    checked={selected.includes(cat.slug)}
                     size="small"
                     edge="start"
                     disableRipple

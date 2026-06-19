@@ -38,6 +38,10 @@ class IUserRepository(ABC):
         pass
 
     @abstractmethod
+    async def get_preference_slugs(self, user_id: UUID) -> list[str]:
+        pass
+
+    @abstractmethod
     async def set_preferences(self, user_id: UUID, category_ids: list[UUID]) -> None:
         pass
 

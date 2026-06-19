@@ -37,6 +37,12 @@ class UserRepository(IUserRepository):
         )
         return list(preferences)
 
+    async def get_preference_slugs(self, user_id: UUID) -> list[str]:
+        prefs = await UserPreference.filter(user_id=user_id).prefetch_related(
+            "category"
+        )
+        return [pref.category.slug for pref in prefs]
+
     async def set_preferences(self, user_id: UUID, category_ids: list[UUID]) -> None:
         await UserPreference.filter(user_id=user_id).delete()
         preference_objects = [

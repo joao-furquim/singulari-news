@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { User } from '../types';
+import client from '../api/client';
 
 interface AuthContextType {
   token: string | null;
@@ -29,6 +30,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return stored ? (JSON.parse(stored) as string[]) : [];
   });
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+
+  // On mount: validate stored token and refresh user + preferences from API.
+  // The 401 interceptor in client.ts handles expired tokens (redirect to /);
+  // this effect handles the happy-path refresh so cached data stays current.
+  useEffect(() => {
+    const storedToken = localStorage.getItem('token');
+    if (!storedToken) return;
+
+    (async () => {
+      try {
+        const { data: userData } = await client.get<User>('/users/me');
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+
+        try {
+          const { data: prefs } = await client.get<string[]>('/users/me/preferences');
+          setPreferences(prefs);
+          localStorage.setItem('preferences', JSON.stringify(prefs));
+        } catch {
+          // Preferences fetch failed — keep localStorage cache
+        }
+      } catch {
+        // Non-401 error (network, etc.) — clear stale session
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('preferences');
+        setToken(null);
+        setUser(null);
+        setPreferences([]);
+      }
+    })();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const login = useCallback(
     (newToken: string, newUser: User, newPreferences: string[]) => {

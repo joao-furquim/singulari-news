@@ -34,7 +34,7 @@ function getDateRange(period: Exclude<Period, 'custom'>) {
 const DEFAULT_LIMIT = 10;
 
 export function useFeedFilters() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, preferences } = useAuth();
 
   const getInitial = (): FeedFilters => ({
     period: 'today',
@@ -47,12 +47,16 @@ export function useFeedFilters() {
 
   const [filters, setFilters] = useState<FeedFilters>(getInitial);
 
-  // Reset all filters on logout
+  // Sync category filters with auth state:
+  // - logout → reset to defaults
+  // - login / preferences update / session restore → load from preferences
   useEffect(() => {
     if (!isAuthenticated) {
       setFilters(getInitial());
+    } else {
+      setFilters((prev) => ({ ...prev, categories: preferences, page: 1 }));
     }
-  }, [isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, preferences]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setPeriod = (period: Period) => {
     if (period === 'custom') {
