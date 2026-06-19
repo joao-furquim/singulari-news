@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -7,15 +7,15 @@ import {
   TextField,
   Button,
   Box,
-  Avatar,
   IconButton,
   Alert,
   Stack,
   CircularProgress,
 } from '@mui/material';
-import { CameraAlt, Close } from '@mui/icons-material';
+import { Close } from '@mui/icons-material';
 import client from '../../api/client';
 import { useAuth } from '../../contexts/AuthContext';
+import { UserAvatar } from '../common/UserAvatar';
 import { User } from '../../types';
 
 interface ProfileModalProps {
@@ -24,7 +24,7 @@ interface ProfileModalProps {
 }
 
 const MODAL_PAPER_SX = {
-  maxWidth: 480,
+  maxWidth: 420,
   width: '100%',
   border: '1px solid #30363d',
   borderRadius: '12px',
@@ -35,55 +35,24 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [fetching, setFetching] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Always fetch fresh user data from the API when modal opens
+  // Always fetch fresh data from the API when the modal opens
   useEffect(() => {
     if (!open) return;
     setError('');
     setFetching(true);
-    client.get<User>('/users/me')
+    client
+      .get<User>('/users/me')
       .then(({ data }) => {
         setName(data.name);
         setEmail(data.email ?? '');
-        setAvatarUrl(data.avatar_url);
       })
       .catch(() => setError('Failed to load profile.'))
       .finally(() => setFetching(false));
   }, [open]);
-
-  const initials = name
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2) || '?';
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append('file', file);
-    setUploading(true);
-    setError('');
-    try {
-      const { data } = await client.post<User>('/users/me/avatar', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      setAvatarUrl(data.avatar_url);
-      updateUser(data);
-    } catch {
-      setError('Failed to upload avatar.');
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -121,49 +90,9 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
           </Box>
         ) : (
           <>
-            {/* Avatar with camera overlay */}
+            {/* Dynamic initials avatar — updates automatically when name changes */}
             <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-              <Box sx={{ position: 'relative' }}>
-                <Avatar
-                  src={avatarUrl ?? undefined}
-                  sx={{
-                    width: 96,
-                    height: 96,
-                    fontSize: 32,
-                    fontWeight: 700,
-                    background: 'linear-gradient(135deg, #1a4a8a 0%, #2d8eff 100%)',
-                  }}
-                >
-                  {!avatarUrl && initials}
-                </Avatar>
-                <IconButton
-                  size="small"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  sx={{
-                    position: 'absolute',
-                    bottom: 0,
-                    right: 0,
-                    bgcolor: 'background.paper',
-                    border: '2px solid',
-                    borderColor: 'divider',
-                    '&:hover': { bgcolor: 'background.default' },
-                  }}
-                >
-                  {uploading ? (
-                    <CircularProgress size={14} />
-                  ) : (
-                    <CameraAlt sx={{ fontSize: 16 }} />
-                  )}
-                </IconButton>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={(e) => void handleFileChange(e)}
-                />
-              </Box>
+              <UserAvatar name={name || '?'} size={72} />
             </Box>
 
             <Stack spacing={2}>
@@ -192,7 +121,7 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
         <Button
           variant="contained"
           onClick={() => void handleSave()}
-          disabled={saving || fetching}
+          disabled={saving || fetching || !name}
         >
           {saving ? 'Saving…' : 'Save changes'}
         </Button>

@@ -4,7 +4,6 @@ from app.core.security import decode_token
 from app.interfaces.email_service import IEmailService
 from app.interfaces.news_repository import INewsRepository
 from app.interfaces.news_service import INewsService
-from app.interfaces.storage_service import IStorageService
 from app.interfaces.user_repository import IUserRepository
 from app.interfaces.user_service import IUserService
 from app.repositories.news_repository import NewsRepository
@@ -13,7 +12,6 @@ from app.schemas.user import UserOut
 from app.services.auth_service import AuthService
 from app.services.email_service import EmailService
 from app.services.news_service import NewsService
-from app.services.storage_service import StorageService
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError
@@ -29,10 +27,6 @@ def get_user_repository() -> IUserRepository:
     return UserRepository()
 
 
-def get_storage_service() -> IStorageService:
-    return StorageService()
-
-
 def get_email_service() -> IEmailService:
     return EmailService()
 
@@ -46,9 +40,8 @@ def get_news_service(
 def get_auth_service(
     user_repository: IUserRepository = Depends(get_user_repository),
     email_service: IEmailService = Depends(get_email_service),
-    storage_service: IStorageService = Depends(get_storage_service),
 ) -> IUserService:
-    return AuthService(user_repository, email_service, storage_service)
+    return AuthService(user_repository, email_service)
 
 
 async def get_current_user(

@@ -8,7 +8,6 @@ from app.core.security import (
     verify_password,
 )
 from app.interfaces.email_service import IEmailService
-from app.interfaces.storage_service import IStorageService
 from app.interfaces.user_repository import IUserRepository
 from app.interfaces.user_service import IUserService
 from app.models.user import UserRole
@@ -22,11 +21,9 @@ class AuthService(IUserService):
         self,
         user_repository: IUserRepository,
         email_service: IEmailService,
-        storage_service: IStorageService,
     ):
         self._user_repository = user_repository
         self._email_service = email_service
-        self._storage_service = storage_service
 
     async def register(self, user_data: UserCreateIn) -> UserOut:
         existing_user = await self._user_repository.find_by_email(user_data.email)
@@ -128,18 +125,6 @@ class AuthService(IUserService):
     async def update_profile(self, user_id: UUID, data: UserUpdateIn) -> UserOut:
         update_data = data.model_dump(exclude_none=True)
         updated_user = await self._user_repository.update(user_id, update_data)
-        return UserOut.model_validate(updated_user)
-
-    async def update_avatar(
-        self, user_id: UUID, file_bytes: bytes, content_type: str
-    ) -> UserOut:
-        avatar_key = f"avatars/{user_id}"
-        avatar_url = await self._storage_service.upload(
-            avatar_key, file_bytes, content_type
-        )
-        updated_user = await self._user_repository.update(
-            user_id, {"avatar_url": avatar_url}
-        )
         return UserOut.model_validate(updated_user)
 
     async def list_users(

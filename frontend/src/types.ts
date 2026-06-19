@@ -23,7 +23,6 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  avatar_url: string | null;
   locale: string;
   role: 'user' | 'reviewer' | 'admin' | 'root';
   must_change_password: boolean;

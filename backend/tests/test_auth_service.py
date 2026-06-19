@@ -16,27 +16,22 @@ from tests.conftest import make_db_user_mock
 def _make_service(
     user_repo: MagicMock,
     email_svc: MagicMock,
-    storage_svc: MagicMock,
 ) -> AuthService:
-    return AuthService(user_repo, email_svc, storage_svc)
+    return AuthService(user_repo, email_svc)
 
 
 # ── register() ────────────────────────────────────────────────────────────────
 
 
 async def test_register_success(
-    mock_user_repository: MagicMock,
-    mock_email_service: MagicMock,
-    mock_storage_service: MagicMock,
+    mock_user_repository: MagicMock, mock_email_service: MagicMock
 ) -> None:
     """New email → creates user and returns UserOut."""
     mock_user_repository.find_by_email.return_value = None
     new_db_user = make_db_user_mock(email="new@test.com", name="New User")
     mock_user_repository.create.return_value = new_db_user
 
-    service = _make_service(
-        mock_user_repository, mock_email_service, mock_storage_service
-    )
+    service = _make_service(mock_user_repository, mock_email_service)
     user_data = UserCreateIn(
         name="New User", email="new@test.com", password="Pass@123!"
     )
@@ -53,16 +48,12 @@ async def test_register_success(
 
 
 async def test_register_duplicate_email(
-    mock_user_repository: MagicMock,
-    mock_email_service: MagicMock,
-    mock_storage_service: MagicMock,
+    mock_user_repository: MagicMock, mock_email_service: MagicMock
 ) -> None:
     """Email already taken → HTTPException 409."""
     mock_user_repository.find_by_email.return_value = make_db_user_mock()
 
-    service = _make_service(
-        mock_user_repository, mock_email_service, mock_storage_service
-    )
+    service = _make_service(mock_user_repository, mock_email_service)
     user_data = UserCreateIn(name="Any", email="taken@test.com", password="Pass@123!")
 
     with pytest.raises(HTTPException) as exc_info:
@@ -77,18 +68,14 @@ async def test_register_duplicate_email(
 
 
 async def test_login_success(
-    mock_user_repository: MagicMock,
-    mock_email_service: MagicMock,
-    mock_storage_service: MagicMock,
+    mock_user_repository: MagicMock, mock_email_service: MagicMock
 ) -> None:
     """Valid credentials → TokenOut with access_token, user and preferences."""
     db_user = make_db_user_mock(email="user@test.com", password_hash="stored_hash")
     mock_user_repository.find_by_email.return_value = db_user
     mock_user_repository.get_preference_ids.return_value = []
 
-    service = _make_service(
-        mock_user_repository, mock_email_service, mock_storage_service
-    )
+    service = _make_service(mock_user_repository, mock_email_service)
     credentials = LoginIn(email="user@test.com", password="correct_pw")
 
     with (
@@ -107,17 +94,13 @@ async def test_login_success(
 
 
 async def test_login_invalid_password(
-    mock_user_repository: MagicMock,
-    mock_email_service: MagicMock,
-    mock_storage_service: MagicMock,
+    mock_user_repository: MagicMock, mock_email_service: MagicMock
 ) -> None:
     """User exists but password is wrong → HTTPException 401."""
     db_user = make_db_user_mock(password_hash="stored_hash")
     mock_user_repository.find_by_email.return_value = db_user
 
-    service = _make_service(
-        mock_user_repository, mock_email_service, mock_storage_service
-    )
+    service = _make_service(mock_user_repository, mock_email_service)
     credentials = LoginIn(email="user@test.com", password="wrong_pw")
 
     with patch("app.services.auth_service.verify_password", return_value=False):
@@ -129,16 +112,12 @@ async def test_login_invalid_password(
 
 
 async def test_login_user_not_found(
-    mock_user_repository: MagicMock,
-    mock_email_service: MagicMock,
-    mock_storage_service: MagicMock,
+    mock_user_repository: MagicMock, mock_email_service: MagicMock
 ) -> None:
     """No user with that email → HTTPException 401 (same message, no enumeration)."""
     mock_user_repository.find_by_email.return_value = None
 
-    service = _make_service(
-        mock_user_repository, mock_email_service, mock_storage_service
-    )
+    service = _make_service(mock_user_repository, mock_email_service)
     credentials = LoginIn(email="ghost@test.com", password="any_pw")
 
     with pytest.raises(HTTPException) as exc_info:

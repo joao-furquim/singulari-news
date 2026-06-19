@@ -12,11 +12,6 @@ class Settings(BaseSettings):
     REDIS_URL: str
     RESEND_API_KEY: str
     EMAIL_FROM: str
-    R2_ACCOUNT_ID: str
-    R2_ACCESS_KEY_ID: str
-    R2_SECRET_ACCESS_KEY: str
-    R2_BUCKET_NAME: str
-    R2_PUBLIC_URL: str
     AI_API_KEY: str
     AI_MODEL: str = "claude-haiku-4-5-20251001"
 

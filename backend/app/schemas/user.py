@@ -37,7 +37,6 @@ class UserOut(BaseModel):
     id: UUID
     name: str
     email: str
-    avatar_url: str | None
     locale: str
     role: str
     must_change_password: bool = False

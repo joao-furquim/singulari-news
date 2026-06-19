@@ -10,7 +10,7 @@ from app.schemas.user import (
     UserPaginatedResponse,
     UserUpdateIn,
 )
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 import math
 
 router = APIRouter(tags=["users"])
@@ -40,18 +40,6 @@ async def update_profile(
     auth_service: IUserService = Depends(get_auth_service),
 ):
     return await auth_service.update_profile(current_user.id, user_data)
-
-
-@router.post("/users/me/avatar", response_model=UserOut)
-async def upload_avatar(
-    file: UploadFile = File(...),
-    current_user: UserOut = Depends(get_current_user),
-    auth_service: IUserService = Depends(get_auth_service),
-):
-    file_bytes = await file.read()
-    return await auth_service.update_avatar(
-        current_user.id, file_bytes, file.content_type
-    )
 
 
 # ── Invite (admin only) ───────────────────────────────────────────────────────

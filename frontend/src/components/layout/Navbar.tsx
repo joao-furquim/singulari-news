@@ -4,7 +4,6 @@ import {
   Toolbar,
   Typography,
   Button,
-  Avatar,
   Menu,
   MenuItem,
   IconButton,
@@ -16,6 +15,7 @@ import {
 import { Person, Settings, Logout, AdminPanelSettings } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { UserAvatar } from '../common/UserAvatar';
 
 interface NavbarProps {
   onSignIn: () => void;
@@ -39,7 +39,8 @@ export function Navbar({ onSignIn, onProfile, onPreferences }: NavbarProps) {
   const handleSignOut = () => { handleClose(); logout(); navigate('/'); };
 
   const firstName = user?.name?.split(' ')[0];
-  const isAdminOrReviewer = user?.role === 'admin' || user?.role === 'reviewer';
+  const isAdminOrReviewer =
+    user?.role === 'admin' || user?.role === 'reviewer' || user?.role === 'root';
 
   return (
     <AppBar
@@ -75,19 +76,8 @@ export function Navbar({ onSignIn, onProfile, onPreferences }: NavbarProps) {
               Hello, {firstName}
             </Typography>
 
-            <IconButton onClick={handleOpen} size="small">
-              <Avatar
-                src={user?.avatar_url ?? undefined}
-                sx={{
-                  width: 32,
-                  height: 32,
-                  fontSize: 13,
-                  fontWeight: 700,
-                  background: 'linear-gradient(135deg, #1a4a8a 0%, #2d8eff 100%)',
-                }}
-              >
-                {user?.name?.[0]?.toUpperCase()}
-              </Avatar>
+            <IconButton onClick={handleOpen} size="small" sx={{ p: 0.5 }}>
+              <UserAvatar name={user?.name ?? '?'} size={30} />
             </IconButton>
 
             <Menu

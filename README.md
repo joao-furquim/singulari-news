@@ -214,11 +214,11 @@ Users with `reviewer` or `admin` role are created exclusively via `POST /users/i
 
 ## External APIs
 
-| API              | Purpose                  | Env variable(s)                                      |
-|------------------|--------------------------|------------------------------------------------------|
-| Google Gemini    | AI article summaries     | `AI_API_KEY`, `AI_MODEL=gemini-2.0-flash-lite`       |
-| Resend           | Transactional email      | `RESEND_API_KEY`, `EMAIL_FROM`                       |
-| Cloudflare R2    | Avatar image storage     | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL` |
+| API              | Purpose                  | Env variable(s)                                |
+|------------------|--------------------------|------------------------------------------------|
+| Google Gemini    | AI article summaries     | `AI_API_KEY`, `AI_MODEL=gemini-2.0-flash-lite` |
+| Anthropic Claude | Agent AI classifier fallback | `AGENT_AI_API_KEY`                         |
+| Resend           | Transactional email      | `RESEND_API_KEY`, `EMAIL_FROM`                 |
 
 Replace actual keys with `<CHAVE_DE_API>` in any shared `.env.example` file. Never commit real keys to version control.
 
@@ -257,6 +257,7 @@ make test-all
 
 ## Future Improvements
 
+- **Avatar image upload** via Cloudflare R2 — infrastructure is already stubbed; requires adding `R2_*` credentials and re-enabling `POST /users/me/avatar`; avatars are currently generated dynamically from user initials
 - **RabbitMQ** as the message broker to support multiple independent article producers (RSS scrapers, webhook receivers, email parsers) with topic-based routing to multiple consumer instances
 - **WebSockets** to replace the 30-second polling loop with server-push notifications for new articles
 - **Thumbnail generation** via an image AI API (DALL-E, Stable Diffusion) to create category-specific cover images for each article card

@@ -16,7 +16,6 @@ class User(Model):
     name = fields.CharField(max_length=255)
     email = fields.CharField(max_length=255, unique=True)
     password_hash = fields.CharField(max_length=255)
-    avatar_url = fields.CharField(max_length=500, null=True)
     locale = fields.CharField(max_length=10, default="pt-BR")
     role = fields.CharEnumField(UserRole, default=UserRole.user, max_length=20)
     must_change_password = fields.BooleanField(default=False)

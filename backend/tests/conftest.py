@@ -27,7 +27,6 @@ def sample_user() -> UserOut:
         id=USER_ID,
         name="Regular User",
         email="user@test.com",
-        avatar_url=None,
         locale="en",
         role="user",
         must_change_password=False,
@@ -41,7 +40,6 @@ def sample_admin() -> UserOut:
         id=ADMIN_ID,
         name="Admin User",
         email="admin@test.com",
-        avatar_url=None,
         locale="en",
         role="admin",
         must_change_password=False,
@@ -55,7 +53,6 @@ def sample_root() -> UserOut:
         id=ROOT_ID,
         name="Root User",
         email="root@test.com",
-        avatar_url=None,
         locale="en",
         role="root",
         must_change_password=False,
@@ -99,13 +96,6 @@ def mock_news_repository() -> MagicMock:
 def mock_email_service() -> MagicMock:
     svc = MagicMock()
     svc.send_password_reset = AsyncMock()
-    return svc
-
-
-@pytest.fixture
-def mock_storage_service() -> MagicMock:
-    svc = MagicMock()
-    svc.upload = AsyncMock(return_value="https://cdn.example.com/avatar.png")
     return svc
 
 
@@ -155,7 +145,6 @@ def make_db_user_mock(
     user.id = user_id or uuid4()
     user.name = name
     user.email = email
-    user.avatar_url = None
     user.locale = "en"
     user.role = role
     user.must_change_password = False

@@ -13,11 +13,6 @@ _TEST_ENV = {
     "REDIS_URL": "redis://localhost:6379",
     "RESEND_API_KEY": "re_test_key",
     "EMAIL_FROM": "test@singulari.com",
-    "R2_ACCOUNT_ID": "test_account",
-    "R2_ACCESS_KEY_ID": "test_access_key",
-    "R2_SECRET_ACCESS_KEY": "test_secret",
-    "R2_BUCKET_NAME": "test-bucket",
-    "R2_PUBLIC_URL": "https://test.r2.dev",
     "AI_API_KEY": "test_ai_key",
     "AI_MODEL": "test-model",
 }
