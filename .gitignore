@@ -42,3 +42,4 @@ agent/data/processed/
 
 # TypeScript build cache
 *.tsbuildinfo
+CLAUDE.md
