@@ -1,10 +1,42 @@
+/**
+ * Hook for fetching and polling the news feed.
+ *
+ * Manages three distinct concerns:
+ *
+ * 1. **Feed fetching** — re-fetches the current page whenever any filter
+ *    changes (period, categories, page, limit, favorites mode).
+ * 2. **New-article detection** — polls page 1 on a background interval,
+ *    comparing the latest article ID to a stored baseline. When the ID
+ *    changes `newArticlesCount` is incremented so the UI can surface a
+ *    "N new articles" banner.
+ * 3. **Manual refresh** — `refreshNews` fetches page 1, updates the
+ *    displayed list, resets the counter, and resets the polling baseline.
+ *
+ * The polling baseline is reset whenever the filter *context* changes
+ * (date range, categories, or favorites mode) so notifications remain
+ * scoped to the current view.
+ *
+ * @module useNewsPolling
+ */
+
 import { useState, useEffect, useRef } from 'react';
 import client from '../api/client';
 import { NewsItem, PaginatedResponse } from '../types';
 import { FeedFilters } from './useFeedFilters';
 
+/** Polling interval in milliseconds. Shorter in development for faster feedback. */
 const POLLING_INTERVAL = import.meta.env.DEV ? 10_000 : 30_000;
 
+/**
+ * Normalise a news API response that may be either paginated or a plain array.
+ *
+ * Some endpoints return a `PaginatedResponse`; others return a raw array.
+ * This function coerces both shapes into a `PaginatedResponse` so callers
+ * can always destructure `items`, `total`, and `pages`.
+ *
+ * @param raw - The raw API response body.
+ * @returns A normalised `PaginatedResponse<NewsItem>`.
+ */
 function normalizeResponse(
   raw: PaginatedResponse<NewsItem> | NewsItem[],
 ): PaginatedResponse<NewsItem> {
@@ -14,6 +46,20 @@ function normalizeResponse(
   return raw;
 }
 
+/**
+ * Fetch and poll the news feed based on the given filter state.
+ *
+ * @param filters - Current feed filter and pagination parameters.
+ * @returns An object containing:
+ *   - `news` — articles for the current page.
+ *   - `total` — total matching article count.
+ *   - `pages` — total page count.
+ *   - `loading` — `true` while a page fetch is in progress.
+ *   - `newArticlesCount` — number of new articles detected since the last
+ *     baseline reset.
+ *   - `refreshNews` — imperative callback to refresh page 1 and reset the
+ *     new-articles counter.
+ */
 export function useNewsPolling(filters: FeedFilters) {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -26,7 +72,12 @@ export function useNewsPolling(filters: FeedFilters) {
   // Tracks the latest article ID on page 1 — never depends on which page is viewed
   const firstNewsIdRef = useRef<string | null>(null);
 
-  // Builds query params; optionally override page and limit
+  /**
+   * Build query parameters for the news endpoint.
+   *
+   * @param overridePage - Override the page number (e.g. force page 1 for polling).
+   * @param overrideLimit - Override the limit (e.g. 1 for lightweight polling checks).
+   */
   const buildParams = (overridePage?: number, overrideLimit?: number) => {
     const params: Record<string, string | number> = {
       page: overridePage ?? filters.page,
@@ -39,7 +90,7 @@ export function useNewsPolling(filters: FeedFilters) {
     return params;
   };
 
-  // Loads the currently-paginated view
+  /** Fetch the currently configured page and update the displayed list. */
   const loadNews = async () => {
     setLoading(true);
     try {
@@ -67,8 +118,14 @@ export function useNewsPolling(filters: FeedFilters) {
     }
   };
 
-  // Polling check — ALWAYS fetches page=1, limit=1 regardless of which page is viewed.
-  // This is the only correct way to detect new arrivals since they always appear at the top.
+  /**
+   * Lightweight polling check — fetches only the first article (page=1, limit=1).
+   *
+   * Compares the latest article ID to the stored baseline. On a mismatch,
+   * increments `newArticlesCount` so the UI can prompt the user to refresh.
+   * Always operates on page 1 regardless of the page the user is currently
+   * viewing, since new articles always appear at the top.
+   */
   const checkForNewArticles = async () => {
     if (filters.favoritesOnly) return; // favorites don't need polling
     console.log('[polling] checking...');
@@ -100,8 +157,11 @@ export function useNewsPolling(filters: FeedFilters) {
     }
   };
 
-  // Called when the user clicks the notification banner.
-  // Fetches page 1 with the current filters, updates the display, and resets the counter.
+  /**
+   * Fetch page 1, update the displayed list, and reset the new-articles counter.
+   *
+   * Intended to be called when the user clicks the "N new articles" banner.
+   */
   const refreshNews = async () => {
     try {
       const params = buildParams(1); // page 1, current limit

@@ -1,3 +1,22 @@
+/**
+ * Pre-configured Axios instance for the Singulari News API.
+ *
+ * Provides two behaviours via interceptors:
+ *
+ * **Request interceptor** — attaches the stored JWT as a `Bearer` token in
+ * the `Authorization` header whenever a token is present in `localStorage`.
+ *
+ * **Response interceptor** — on a `401 Unauthorized` response, clears all
+ * auth data from `localStorage` and redirects to `/`, effectively logging
+ * the user out when their token has expired or been invalidated.
+ *
+ * Base URL:
+ * - Development (`import.meta.env.DEV`): `http://localhost:8000`
+ * - Production: `/api` (proxied by the Nginx frontend container)
+ *
+ * @module client
+ */
+
 import axios from 'axios';
 
 const BASE_URL = import.meta.env.DEV ? 'http://localhost:8000' : '/api';
