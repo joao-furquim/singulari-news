@@ -1,5 +1,38 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+
+vi.mock('@mui/material', () => ({
+  Box: ({ children }: any) => <div>{children}</div>,
+  Typography: ({ children }: any) => <span>{children}</span>,
+  Chip: ({ label, onClick }: any) => <button onClick={onClick}>{label}</button>,
+  IconButton: ({ children, onClick, 'aria-label': ariaLabel }: any) => <button onClick={onClick} aria-label={ariaLabel}>{children}</button>,
+  Card: ({ children, sx, ...rest }: any) => <div {...rest}>{children}</div>,
+  CardActionArea: ({ children, onClick }: any) => <div onClick={onClick}>{children}</div>,
+  CardContent: ({ children }: any) => <div>{children}</div>,
+  Avatar: ({ children }: any) => <div>{children}</div>,
+}));
+
+vi.mock('@mui/icons-material', () => ({
+  default: () => null,
+  Computer: () => null,
+  Psychology: () => null,
+  BusinessCenter: () => null,
+  Science: () => null,
+  Lightbulb: () => null,
+  Public: () => null,
+  Article: () => null,
+  Star: () => null,
+  StarBorder: () => null,
+  HealthAndSafety: () => null,
+  RocketLaunch: () => null,
+  EnergySavingsLeaf: () => null,
+  AccountBalance: () => null,
+  Sports: () => null,
+  TheaterComedy: () => null,
+  Work: () => null,
+  Movie: () => null,
+  Groups: () => null,
+}));
 import userEvent from '@testing-library/user-event';
 import { NewsItem } from '../news/NewsItem';
 import type { NewsItem as NewsItemType } from '../../types';

@@ -2,9 +2,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { startOfDay, startOfWeek, startOfMonth } from 'date-fns';
 
-// Mock AuthContext so the hook doesn't need a real Provider
+// Stable reference — a new [] on every call would make the useEffect
+// dependency change every render, causing an infinite loop.
+const STABLE_PREFERENCES: string[] = [];
+
 vi.mock('../../contexts/AuthContext', () => ({
-  useAuth: () => ({ isAuthenticated: false, preferences: [] }),
+  useAuth: () => ({ isAuthenticated: false, preferences: STABLE_PREFERENCES }),
 }));
 
 import { useFeedFilters } from '../useFeedFilters';
@@ -13,7 +16,7 @@ const FIXED_NOW = new Date('2026-06-18T14:00:00.000Z');
 
 describe('useFeedFilters', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
+    vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(FIXED_NOW);
   });
 

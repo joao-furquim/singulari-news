@@ -1,5 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+
+vi.mock('@mui/material', () => ({
+  Box: ({ children }: any) => <div>{children}</div>,
+  Typography: ({ children }: any) => <span>{children}</span>,
+  Chip: ({ label, onClick }: any) => <button onClick={onClick}>{label}</button>,
+  IconButton: ({ children, onClick }: any) => <button onClick={onClick}>{children}</button>,
+  Divider: () => <hr />,
+}));
 import userEvent from '@testing-library/user-event';
 import { FilterBar } from '../layout/FilterBar';
 import type { FeedFilters } from '../../hooks/useFeedFilters';

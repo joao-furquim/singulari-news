@@ -7,9 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "test": "vitest run --config vitest.config.ts",
-    "test:watch": "vitest --config vitest.config.ts",
-    "test:coverage": "vitest run --config vitest.config.ts --coverage"
+    "test": "NODE_OPTIONS='--max-old-space-size=6144' vitest run --config vitest.config.ts",
+    "test:watch": "NODE_OPTIONS='--max-old-space-size=6144' vitest --config vitest.config.ts",
+    "test:coverage": "NODE_OPTIONS='--max-old-space-size=6144' vitest run --config vitest.config.ts --coverage"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
