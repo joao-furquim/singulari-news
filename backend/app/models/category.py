@@ -3,7 +3,7 @@ from tortoise.models import Model
 
 
 class Category(Model):
-    id = fields.UUIDField(pk=True)
+    id = fields.UUIDField(primary_key=True)
     name = fields.CharField(max_length=100, unique=True)
     slug = fields.CharField(max_length=100, unique=True)
     icon = fields.CharField(max_length=50, null=True)

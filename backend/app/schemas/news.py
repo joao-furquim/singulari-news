@@ -1,21 +1,22 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class CategoryOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID
     name: str
     slug: str
     icon: str | None
     description: str | None
 
-    class Config:
-        from_attributes = True
-
 
 class NewsOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID
     category: CategoryOut
     title: str
@@ -26,9 +27,6 @@ class NewsOut(BaseModel):
     ai_generated: bool
     created_at: datetime
     is_favorited: bool = False
-
-    class Config:
-        from_attributes = True
 
 
 class NewsUpdateIn(BaseModel):

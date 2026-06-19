@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import UUID
 
 from app.models.user import UserRole
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 
 class UserCreateIn(BaseModel):
@@ -32,6 +32,8 @@ class PasswordChangeIn(BaseModel):
 
 
 class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID
     name: str
     email: str
@@ -40,9 +42,6 @@ class UserOut(BaseModel):
     role: str
     must_change_password: bool = False
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class UserPaginatedResponse(BaseModel):

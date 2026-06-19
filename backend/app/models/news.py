@@ -3,7 +3,7 @@ from tortoise.models import Model
 
 
 class News(Model):
-    id = fields.UUIDField(pk=True)
+    id = fields.UUIDField(primary_key=True)
     category = fields.ForeignKeyField("models.Category", related_name="news_items")
     title = fields.CharField(max_length=500)
     source = fields.CharField(max_length=255)
@@ -18,7 +18,7 @@ class News(Model):
 
 
 class NewsQueue(Model):
-    id = fields.UUIDField(pk=True)
+    id = fields.UUIDField(primary_key=True)
     news = fields.ForeignKeyField("models.News", related_name="queue_entries")
     status = fields.CharField(max_length=50, default="pending")
     error_message = fields.TextField(null=True)

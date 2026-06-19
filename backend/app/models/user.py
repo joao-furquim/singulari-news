@@ -12,7 +12,7 @@ class UserRole(str, Enum):
 
 
 class User(Model):
-    id = fields.UUIDField(pk=True)
+    id = fields.UUIDField(primary_key=True)
     name = fields.CharField(max_length=255)
     email = fields.CharField(max_length=255, unique=True)
     password_hash = fields.CharField(max_length=255)
@@ -28,7 +28,7 @@ class User(Model):
 
 
 class UserPreference(Model):
-    id = fields.UUIDField(pk=True)
+    id = fields.UUIDField(primary_key=True)
     user = fields.ForeignKeyField("models.User", related_name="user_preferences")
     category = fields.ForeignKeyField(
         "models.Category", related_name="user_preferences"
@@ -41,7 +41,7 @@ class UserPreference(Model):
 
 
 class UserFavorite(Model):
-    id = fields.UUIDField(pk=True)
+    id = fields.UUIDField(primary_key=True)
     user = fields.ForeignKeyField("models.User", related_name="user_favorites")
     news = fields.ForeignKeyField("models.News", related_name="user_favorites")
     saved_at = fields.DatetimeField(auto_now_add=True)
@@ -52,7 +52,7 @@ class UserFavorite(Model):
 
 
 class PasswordReset(Model):
-    id = fields.UUIDField(pk=True)
+    id = fields.UUIDField(primary_key=True)
     user = fields.ForeignKeyField("models.User", related_name="password_resets")
     token = fields.CharField(max_length=500, unique=True)
     is_used = fields.BooleanField(default=False)
