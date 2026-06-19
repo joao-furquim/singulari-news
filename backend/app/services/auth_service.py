@@ -1,3 +1,10 @@
+"""Authentication and user management service.
+
+Implements registration, login, password-reset flows, profile updates, and
+admin operations such as inviting users or changing roles. Delegates
+persistence to ``IUserRepository`` and email delivery to ``IEmailService``.
+"""
+
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
@@ -17,15 +24,28 @@ from fastapi import HTTPException, status
 
 
 class AuthService(IUserService):
+    """Concrete implementation of the user and authentication service."""
+
     def __init__(
         self,
         user_repository: IUserRepository,
         email_service: IEmailService,
     ):
+        """Initialise the service with its dependencies.
+
+        :param user_repository: Concrete repository for user persistence.
+        :param email_service: Concrete service for sending transactional emails.
+        """
         self._user_repository = user_repository
         self._email_service = email_service
 
     async def register(self, user_data: UserCreateIn) -> UserOut:
+        """Register a new user account with the default ``user`` role.
+
+        :param user_data: Name, email, and plaintext password.
+        :return: The created user serialised as ``UserOut``.
+        :raises HTTPException 409: When the email address is already registered.
+        """
         existing_user = await self._user_repository.find_by_email(user_data.email)
         if existing_user is not None:
             raise HTTPException(
@@ -43,6 +63,16 @@ class AuthService(IUserService):
         return UserOut.model_validate(new_user)
 
     async def invite(self, user_data: UserInviteIn) -> UserOut:
+        """Create a user account via admin invitation.
+
+        The created account has ``must_change_password=True`` so the invitee
+        is prompted to set their own password on first login.
+
+        :param user_data: Name, email, initial password, and desired role.
+        :return: The created user serialised as ``UserOut``.
+        :raises HTTPException 403: When attempting to assign the ``root`` role.
+        :raises HTTPException 409: When the email address is already registered.
+        """
         if user_data.role == UserRole.root:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -66,6 +96,12 @@ class AuthService(IUserService):
         return UserOut.model_validate(new_user)
 
     async def login(self, credentials: LoginIn) -> TokenOut:
+        """Authenticate a user and issue a JWT access token.
+
+        :param credentials: Email and plaintext password.
+        :return: ``TokenOut`` with access token, user details, and preference IDs.
+        :raises HTTPException 401: When the email or password is incorrect.
+        """
         user = await self._user_repository.find_by_email(credentials.email)
         is_authenticated = user is not None and verify_password(
             credentials.password, user.password_hash
@@ -86,6 +122,13 @@ class AuthService(IUserService):
         )
 
     async def forgot_password(self, data: ForgotPasswordIn) -> None:
+        """Initiate a password-reset flow by sending a reset email.
+
+        Silently returns when the email is not registered to prevent
+        user-enumeration attacks.
+
+        :param data: Email address for which a reset is requested.
+        """
         user = await self._user_repository.find_by_email(data.email)
         if user is None:
             return
@@ -108,6 +151,13 @@ class AuthService(IUserService):
         await self._email_service.send_password_reset(user.email, reset_token)
 
     async def reset_password(self, data: ResetPasswordIn) -> None:
+        """Complete a password-reset using a previously issued token.
+
+        Marks the token as used after successfully updating the password.
+
+        :param data: Reset token and new plaintext password.
+        :raises HTTPException 400: When the token is invalid, expired, or already used.
+        """
         reset_record = await self._user_repository.find_valid_reset_token(data.token)
         if reset_record is None:
             raise HTTPException(
@@ -123,6 +173,12 @@ class AuthService(IUserService):
         await reset_record.save()
 
     async def update_profile(self, user_id: UUID, data: UserUpdateIn) -> UserOut:
+        """Update the authenticated user's profile fields.
+
+        :param user_id: UUID of the user to update.
+        :param data: Fields to patch; ``None`` values are excluded.
+        :return: The updated user serialised as ``UserOut``.
+        """
         update_data = data.model_dump(exclude_none=True)
         updated_user = await self._user_repository.update(user_id, update_data)
         return UserOut.model_validate(updated_user)
@@ -130,10 +186,22 @@ class AuthService(IUserService):
     async def list_users(
         self, page: int = 1, limit: int = 10
     ) -> tuple[list[UserOut], int]:
+        """Retrieve a paginated list of all non-root users.
+
+        :param page: 1-based page number.
+        :param limit: Maximum number of users per page.
+        :return: Tuple of ``(users, total_count)``.
+        """
         users, total = await self._user_repository.find_all_paginated(page, limit)
         return [UserOut.model_validate(u) for u in users], total
 
     async def delete_user(self, user_id: UUID) -> None:
+        """Permanently delete a user account.
+
+        :param user_id: UUID of the user to delete.
+        :raises HTTPException 403: When attempting to delete the root user.
+        :raises HTTPException 404: When no user with ``user_id`` exists.
+        """
         user = await self._user_repository.find_by_id(user_id)
         if user is None:
             raise HTTPException(
@@ -147,6 +215,11 @@ class AuthService(IUserService):
         await self._user_repository.delete(user_id)
 
     async def change_password(self, user_id: UUID, new_password: str) -> None:
+        """Update the user's password and clear the ``must_change_password`` flag.
+
+        :param user_id: UUID of the user whose password to update.
+        :param new_password: New plaintext password (hashed before storage).
+        """
         await self._user_repository.update(
             user_id,
             {
@@ -156,6 +229,14 @@ class AuthService(IUserService):
         )
 
     async def update_user_role(self, user_id: UUID, role: UserRole) -> UserOut:
+        """Change the role of an existing user.
+
+        :param user_id: UUID of the user whose role should be changed.
+        :param role: New role to assign.
+        :return: The updated user serialised as ``UserOut``.
+        :raises HTTPException 403: When assigning or overwriting the ``root`` role.
+        :raises HTTPException 404: When no user with ``user_id`` exists.
+        """
         if role == UserRole.root:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

@@ -1,3 +1,10 @@
+"""Tortoise ORM models for users and related entities.
+
+Defines the ``User`` account model, ``UserPreference`` (category subscriptions),
+``UserFavorite`` (saved articles), ``PasswordReset`` (one-time reset tokens),
+and the ``UserRole`` enumeration.
+"""
+
 from enum import Enum
 
 from tortoise import fields
@@ -5,6 +12,14 @@ from tortoise.models import Model
 
 
 class UserRole(str, Enum):
+    """Enumeration of possible user roles in ascending privilege order.
+
+    - ``user`` — standard reader account.
+    - ``reviewer`` — can edit and delete news articles.
+    - ``admin`` — can manage users (invite, change roles, delete).
+    - ``root`` — superuser created at startup; cannot be deleted or modified.
+    """
+
     user = "user"
     reviewer = "reviewer"
     admin = "admin"
@@ -12,6 +27,8 @@ class UserRole(str, Enum):
 
 
 class User(Model):
+    """A registered user account stored in the ``users`` table."""
+
     id = fields.UUIDField(primary_key=True)
     name = fields.CharField(max_length=255)
     email = fields.CharField(max_length=255, unique=True)
@@ -27,6 +44,12 @@ class User(Model):
 
 
 class UserPreference(Model):
+    """A user's category subscription stored in the ``user_preferences`` table.
+
+    Each row represents a single (user, category) pair. Deleting all rows
+    for a user and bulk-inserting new ones is the preferred update strategy.
+    """
+
     id = fields.UUIDField(primary_key=True)
     user = fields.ForeignKeyField("models.User", related_name="user_preferences")
     category = fields.ForeignKeyField(
@@ -40,6 +63,8 @@ class UserPreference(Model):
 
 
 class UserFavorite(Model):
+    """A news article saved by a user, stored in the ``user_favorites`` table."""
+
     id = fields.UUIDField(primary_key=True)
     user = fields.ForeignKeyField("models.User", related_name="user_favorites")
     news = fields.ForeignKeyField("models.News", related_name="user_favorites")
@@ -51,6 +76,12 @@ class UserFavorite(Model):
 
 
 class PasswordReset(Model):
+    """A one-time password-reset token stored in the ``password_resets`` table.
+
+    Tokens expire after ``JWT_RESET_TOKEN_EXPIRE_MINUTES`` and are marked
+    ``is_used=True`` once the password is successfully changed.
+    """
+
     id = fields.UUIDField(primary_key=True)
     user = fields.ForeignKeyField("models.User", related_name="password_resets")
     token = fields.CharField(max_length=500, unique=True)

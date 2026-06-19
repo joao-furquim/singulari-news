@@ -1,3 +1,11 @@
+"""FastAPI dependency functions for injecting services and enforcing auth.
+
+All injectable dependencies follow the ``get_*`` naming convention.
+``get_current_user`` and ``require_role`` are used as security guards on
+protected routes. Concrete repository and service instances are created
+here and wired together.
+"""
+
 from uuid import UUID
 
 from app.core.security import decode_token
@@ -20,20 +28,38 @@ bearer_scheme = HTTPBearer()
 
 
 def get_news_repository() -> INewsRepository:
+    """Provide a concrete ``NewsRepository`` instance.
+
+    :return: A new ``NewsRepository`` backed by Tortoise ORM.
+    """
     return NewsRepository()
 
 
 def get_user_repository() -> IUserRepository:
+    """Provide a concrete ``UserRepository`` instance.
+
+    :return: A new ``UserRepository`` backed by Tortoise ORM.
+    """
     return UserRepository()
 
 
 def get_email_service() -> IEmailService:
+    """Provide a concrete ``EmailService`` instance.
+
+    :return: A new ``EmailService`` backed by Resend (falls back to logging
+             when ``RESEND_API_KEY`` is empty).
+    """
     return EmailService()
 
 
 def get_news_service(
     news_repository: INewsRepository = Depends(get_news_repository),
 ) -> INewsService:
+    """Provide a ``NewsService`` wired with its repository dependency.
+
+    :param news_repository: Injected news repository instance.
+    :return: A new ``NewsService``.
+    """
     return NewsService(news_repository)
 
 
@@ -41,6 +67,12 @@ def get_auth_service(
     user_repository: IUserRepository = Depends(get_user_repository),
     email_service: IEmailService = Depends(get_email_service),
 ) -> IUserService:
+    """Provide an ``AuthService`` wired with its repository and email dependencies.
+
+    :param user_repository: Injected user repository instance.
+    :param email_service: Injected email service instance.
+    :return: A new ``AuthService``.
+    """
     return AuthService(user_repository, email_service)
 
 
@@ -48,6 +80,18 @@ async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     user_repository: IUserRepository = Depends(get_user_repository),
 ) -> UserOut:
+    """Validate the Bearer token and return the authenticated user.
+
+    Decodes the JWT, verifies it is an ``access`` token, and loads the
+    corresponding user from the database.
+
+    :param credentials: HTTP Bearer credentials extracted from the
+                        ``Authorization`` header.
+    :param user_repository: Injected user repository for the user look-up.
+    :return: The authenticated user serialised as ``UserOut``.
+    :raises HTTPException 401: When the token is missing, invalid, expired,
+                               or does not belong to an existing user.
+    """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid or expired token",
@@ -69,6 +113,19 @@ async def get_current_user(
 
 
 def require_role(*roles: str):
+    """Return a FastAPI dependency that enforces role-based access control.
+
+    The ``root`` role implicitly satisfies any role requirement. All other
+    users must have one of the explicitly listed roles.
+
+    :param roles: One or more role strings the caller must possess
+                  (e.g. ``"admin"``, ``"reviewer"``).
+    :return: An async dependency function that resolves to the current user
+             or raises 403.
+    :raises HTTPException 403: When the authenticated user's role is not in
+                               the allowed set.
+    """
+
     async def check_role(current_user: UserOut = Depends(get_current_user)) -> UserOut:
         if current_user.role == "root":  # root inherits all permissions
             return current_user

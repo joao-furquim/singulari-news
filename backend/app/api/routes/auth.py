@@ -1,3 +1,10 @@
+"""Authentication routes for user registration, login, and password reset.
+
+All endpoints in this module are public (no JWT required). The login
+response includes an access token that must be included as a Bearer token
+in subsequent requests to protected routes.
+"""
+
 from app.core.dependencies import get_auth_service
 from app.interfaces.user_service import IUserService
 from app.schemas.auth import ForgotPasswordIn, LoginIn, ResetPasswordIn, TokenOut
@@ -12,6 +19,12 @@ async def register(
     user_data: UserCreateIn,
     auth_service: IUserService = Depends(get_auth_service),
 ):
+    """Register a new user account.
+
+    :param user_data: Name, email address, and plaintext password.
+    :return: The created user (201 Created).
+    :raises HTTPException 409: When the email address is already registered.
+    """
     return await auth_service.register(user_data)
 
 
@@ -20,6 +33,12 @@ async def login(
     credentials: LoginIn,
     auth_service: IUserService = Depends(get_auth_service),
 ):
+    """Authenticate a user and issue a JWT access token.
+
+    :param credentials: Email and plaintext password.
+    :return: Access token, token type, user details, and category preference IDs.
+    :raises HTTPException 401: When the email or password is incorrect.
+    """
     return await auth_service.login(credentials)
 
 
@@ -28,6 +47,13 @@ async def forgot_password(
     data: ForgotPasswordIn,
     auth_service: IUserService = Depends(get_auth_service),
 ):
+    """Initiate a password-reset flow by sending a reset email.
+
+    Always returns 204 regardless of whether the email is registered
+    to prevent user-enumeration attacks.
+
+    :param data: Email address for which a reset is requested.
+    """
     await auth_service.forgot_password(data)
 
 
@@ -36,4 +62,9 @@ async def reset_password(
     data: ResetPasswordIn,
     auth_service: IUserService = Depends(get_auth_service),
 ):
+    """Complete a password-reset using a previously issued token.
+
+    :param data: One-time reset token and the new plaintext password.
+    :raises HTTPException 400: When the token is invalid, expired, or already used.
+    """
     await auth_service.reset_password(data)
