@@ -1,6 +1,4 @@
 import { ThemeProvider, CssBaseline } from '@mui/material';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { theme } from './theme';
 import { AuthProvider } from './contexts/AuthContext';
@@ -14,36 +12,34 @@ import { AdminRoute } from './components/AdminRoute';
 export default function App() {
   return (
     <ThemeProvider theme={theme}>
-      <LocalizationProvider dateAdapter={AdapterDateFns}>
-        <CssBaseline />
-        <AuthProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
+      <CssBaseline />
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute roles={['admin', 'reviewer']}>
+                  <AdminLayout />
+                </AdminRoute>
+              }
+            >
+              <Route index element={<AdminDashboard />} />
+              <Route path="news" element={<NewsManagement />} />
               <Route
-                path="/admin"
+                path="users"
                 element={
-                  <AdminRoute roles={['admin', 'reviewer']}>
-                    <AdminLayout />
+                  <AdminRoute roles={['admin']} redirectTo="/admin">
+                    <UserManagement />
                   </AdminRoute>
                 }
-              >
-                <Route index element={<AdminDashboard />} />
-                <Route path="news" element={<NewsManagement />} />
-                <Route
-                  path="users"
-                  element={
-                    <AdminRoute roles={['admin']} redirectTo="/admin">
-                      <UserManagement />
-                    </AdminRoute>
-                  }
-                />
-              </Route>
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </BrowserRouter>
-        </AuthProvider>
-      </LocalizationProvider>
+              />
+            </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

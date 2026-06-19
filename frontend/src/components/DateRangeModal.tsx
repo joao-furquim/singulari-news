@@ -6,9 +6,8 @@ import {
   DialogActions,
   Button,
   Stack,
+  TextField,
 } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { format } from 'date-fns';
 
 interface DateRangeModalProps {
   open: boolean;
@@ -16,50 +15,75 @@ interface DateRangeModalProps {
   onApply: (date_from: string, date_to: string) => void;
 }
 
-const toISO = (d: Date) => format(d, "yyyy-MM-dd'T'HH:mm:ss");
+const inputSx = {
+  '& .MuiOutlinedInput-root': {
+    bgcolor: '#161b22',
+    '& fieldset': { borderColor: '#30363d' },
+    '&:hover fieldset': { borderColor: '#2d8eff' },
+    '&.Mui-focused fieldset': { borderColor: '#2d8eff' },
+  },
+  '& input': { colorScheme: 'dark' },
+};
 
 const MODAL_PAPER_SX = {
-  maxWidth: 480,
+  maxWidth: 380,
   width: '100%',
   border: '1px solid #30363d',
   borderRadius: '12px',
 };
 
 export function DateRangeModal({ open, onClose, onApply }: DateRangeModalProps) {
-  const [from, setFrom] = useState<Date | null>(null);
-  const [to, setTo] = useState<Date | null>(null);
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
 
   const handleApply = () => {
     if (!from || !to) return;
-    onApply(toISO(from), toISO(to));
+    onApply(
+      new Date(`${from}T00:00:00`).toISOString(),
+      new Date(`${to}T23:59:59`).toISOString(),
+    );
+    onClose();
+  };
+
+  const handleClose = () => {
+    setFrom('');
+    setTo('');
     onClose();
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth PaperProps={{ sx: MODAL_PAPER_SX }}>
+    <Dialog open={open} onClose={handleClose} fullWidth PaperProps={{ sx: MODAL_PAPER_SX }}>
       <DialogTitle>Select date range</DialogTitle>
 
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 0.5 }}>
-          <DatePicker
+          <TextField
             label="From"
+            type="date"
             value={from}
-            onChange={(v) => setFrom(v)}
-            maxDate={to ?? undefined}
-            slotProps={{ textField: { size: 'small', fullWidth: true } }}
+            onChange={(e) => setFrom(e.target.value)}
+            inputProps={{ max: to || undefined }}
+            size="small"
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            sx={inputSx}
           />
-          <DatePicker
+          <TextField
             label="To"
+            type="date"
             value={to}
-            onChange={(v) => setTo(v)}
-            minDate={from ?? undefined}
-            slotProps={{ textField: { size: 'small', fullWidth: true } }}
+            onChange={(e) => setTo(e.target.value)}
+            inputProps={{ min: from || undefined }}
+            size="small"
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            sx={inputSx}
           />
         </Stack>
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button color="inherit" onClick={onClose}>Cancel</Button>
+        <Button color="inherit" onClick={handleClose}>Cancel</Button>
         <Button variant="contained" onClick={handleApply} disabled={!from || !to}>
           Apply
         </Button>

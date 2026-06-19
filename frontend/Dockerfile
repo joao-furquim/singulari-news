@@ -2,10 +2,9 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
-# Use npm install instead of npm ci so npm resolves platform-specific
-# binaries (esbuild, etc.) for linux/x64 inside Docker, regardless of
-# the OS that generated the package-lock.json.
-RUN npm cache clean --force && npm install --legacy-peer-deps
+# Clean install resolves platform-specific binaries for linux/x64.
+# --legacy-peer-deps avoids peer resolution errors across MUI packages.
+RUN npm cache clean --force && rm -rf node_modules && npm install --legacy-peer-deps
 COPY . .
 RUN npm run build
 

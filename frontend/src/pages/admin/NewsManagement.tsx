@@ -26,7 +26,6 @@ import {
   Pagination,
 } from '@mui/material';
 import { Edit, Delete, FirstPage, LastPage } from '@mui/icons-material';
-import { DateTimePicker } from '@mui/x-date-pickers';
 import { format } from 'date-fns';
 import client from '../../api/client';
 import { NewsItem, Category, PaginatedResponse } from '../../types';
@@ -35,12 +34,17 @@ interface NewsForm {
   title: string;
   content: string;
   category_id: string;
-  published_at: Date | null;
+  published_at: string; // datetime-local input value: YYYY-MM-DDTHH:MM
 }
 
 const LIMIT_OPTIONS = [10, 20, 50] as const;
 const cellSx = { color: '#c9d1d9', fontSize: 13, borderColor: '#30363d' };
 const headSx = { color: '#8b949e', fontSize: 12, fontWeight: 600, borderColor: '#30363d', bgcolor: '#161b22' };
+
+function toDatetimeLocal(iso: string): string {
+  // Converts ISO string to the format required by <input type="datetime-local">
+  return iso.slice(0, 16); // "YYYY-MM-DDTHH:MM"
+}
 
 const paginationSx = {
   '& .MuiPaginationItem-root': { color: '#8b949e', borderColor: '#30363d' },
@@ -62,7 +66,7 @@ export function NewsManagement() {
 
   const [editOpen, setEditOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<NewsItem | null>(null);
-  const [form, setForm] = useState<NewsForm>({ title: '', content: '', category_id: '', published_at: null });
+  const [form, setForm] = useState<NewsForm>({ title: '', content: '', category_id: '', published_at: '' });
   const [saving, setSaving] = useState(false);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -99,7 +103,7 @@ export function NewsManagement() {
       title: item.title,
       content: item.content,
       category_id: item.category?.id ?? '',
-      published_at: new Date(item.published_at),
+      published_at: toDatetimeLocal(item.published_at),
     });
     setEditOpen(true);
   };
@@ -111,7 +115,7 @@ export function NewsManagement() {
       await client.put(`/news/${editTarget.id}`, {
         title: form.title,
         content: form.content,
-        published_at: form.published_at?.toISOString(),
+        published_at: form.published_at ? new Date(form.published_at).toISOString() : undefined,
       });
       setEditOpen(false);
       void fetchNews();
@@ -299,11 +303,15 @@ export function NewsManagement() {
               ))}
             </Select>
           </FormControl>
-          <DateTimePicker
+          <TextField
             label="Published at"
+            type="datetime-local"
             value={form.published_at}
-            onChange={(date) => setForm((f) => ({ ...f, published_at: date }))}
-            slotProps={{ textField: { size: 'small', fullWidth: true } }}
+            onChange={(e) => setForm((f) => ({ ...f, published_at: e.target.value }))}
+            size="small"
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            sx={{ '& input': { colorScheme: 'dark' } }}
           />
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }}>
